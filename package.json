@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-html": "^0.2.0",
+    "ava": "^3.13.0",
     "rollup": "^2.33.1"
   },
   "peerDependencies": {
