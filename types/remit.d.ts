@@ -8,7 +8,6 @@ export interface RollupRemitPluginOptions {
   include?: FilterPattern
   exclude?: FilterPattern
   format?: string
-  inline?: boolean
   inheritPlugins?: {
     include?: FilterPattern
     exclude?: FilterPattern

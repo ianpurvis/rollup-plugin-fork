@@ -10,7 +10,7 @@
     "require": "./dist/remit.cjs",
     "import": "./dist/remit.mjs"
   },
-  "types": "types/index.d.ts",
+  "types": "types/remit.d.ts",
   "files": [
     "dist",
     "types",
