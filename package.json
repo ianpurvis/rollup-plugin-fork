@@ -20,7 +20,7 @@
   "scripts": {
     "build": "rollup -c",
     "clean": "node -r fs -e \"fs.rmdirSync('dist', { recursive: true })\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
   },
   "dependencies": {
     "@rollup/pluginutils": "^4.1.0"
