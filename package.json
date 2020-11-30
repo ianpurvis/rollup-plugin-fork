@@ -26,6 +26,7 @@
     "@rollup/pluginutils": "^4.1.0"
   },
   "devDependencies": {
+    "@rollup/plugin-html": "^0.2.0",
     "rollup": "^2.33.1"
   },
   "peerDependencies": {
