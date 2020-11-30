@@ -4,8 +4,10 @@ import asset from './plugins/asset.js'
 import worker from './plugins/worker.js'
 import indexTemplate from './src/index.html.js'
 
+const input = new URL('src/index.js', import.meta.url).pathname
+
 export default {
-  input: 'src/index.js',
+  input,
   output: {
     dir: 'dist',
     format: 'es'
