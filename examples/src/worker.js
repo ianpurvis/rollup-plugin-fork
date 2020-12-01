@@ -3,7 +3,7 @@ import nestedImport from './nested-import.js'
 import assetImport from '../assets/asset.txt'
 
 async function run() {
-  const title = "Web Worker Example"
+  const title = 'Web Worker Example'
   const tests = []
 
   tests.push({

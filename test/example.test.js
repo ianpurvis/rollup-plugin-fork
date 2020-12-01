@@ -24,7 +24,7 @@ async function checkExample(t, page) {
   const { address, port } = server.address()
   const url = new URL(`http://${address}:${port}`)
   await page.goto(url)
-  await page.waitForFunction(() => '_data' in window)
+  await page.waitForFunction(() => '_data' in window) // eslint-disable-line no-undef
   const { tests } = await page.evaluate('_data')
   const { expected, actual } = tests.find(test => test.name == t.title)
   t.is(actual, expected)
