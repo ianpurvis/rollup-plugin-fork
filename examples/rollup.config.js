@@ -27,8 +27,7 @@ export default {
       format: 'iife',
       inheritPlugins: {
         exclude: /html/
-      },
-      inline: true
+      }
     })
   ]
 }
