@@ -13,7 +13,7 @@ module.exports = {
   overrides: [
     {
       files: [
-        'examples/src/**/*.js',
+        'examples/*/src/**/*.js',
       ],
       env: {
         browser: true,

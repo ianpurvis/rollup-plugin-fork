@@ -1,5 +1,5 @@
 import html from '@rollup/plugin-html'
-import remit from '../src/remit.js'
+import remit from '../../src/remit.js'
 import asset from './plugins/asset.js'
 import worker from './plugins/worker.js'
 import indexTemplate from './src/index.html.js'

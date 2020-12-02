@@ -1,6 +1,6 @@
 import test from 'ava'
 import { rollup } from 'rollup'
-import rollupConfig from '../examples/rollup.config.js'
+import rollupConfig from '../examples/complex-web-worker/rollup.config.js'
 import { createRollupMiddleware } from '../lib/koa-rollup.js'
 import * as browser from './helpers/browser.js'
 import * as server from './helpers/server.js'
