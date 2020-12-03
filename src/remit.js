@@ -39,6 +39,27 @@ function createRemitPlugin({
     return `export default ${fileUrl}`
   }
 
+  function outputOptions({
+    // filename functions cannot return undefined.
+    // re-create rollup defaults as a workaround:
+    assetFileNames = 'assets/[name]-[hash][extname]',
+    chunkFileNames = '[name]-[hash].js',
+    ...options
+  }) {
+    return {
+      assetFileNames(assetInfo) {
+        for (const { name } of remitted) {
+          if (assetInfo.name == name) {
+            return chunkFileNames
+          }
+        }
+        return assetFileNames
+      },
+      chunkFileNames,
+      ...options,
+    }
+  }
+
   async function renderStart(outputOptions, { plugins: inputPlugins = [], ...inputOptions }) {
     for (const remittee of remitted) {
       const localInputOptions = {
@@ -67,7 +88,7 @@ function createRemitPlugin({
     }
   }
 
-  return { buildStart, load, name, renderStart }
+  return { buildStart, load, name, outputOptions, renderStart }
 }
 
 export default createRemitPlugin
