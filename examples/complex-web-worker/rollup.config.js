@@ -4,11 +4,12 @@ import asset from './plugins/asset.js'
 import worker from './plugins/worker.js'
 
 const input = new URL('src/index.js', import.meta.url).pathname
+const outputDir = new URL('dist', import.meta.url).pathname
 
 export default {
   input,
   output: {
-    dir: 'dist',
+    dir: outputDir,
     format: 'es'
   },
   plugins: [
