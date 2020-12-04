@@ -37,13 +37,29 @@ test.before(browser.setup)
 test.after.always(browser.teardown)
 test.after.always(server.teardown)
 
-test('should build example', t => {
+test('should generate an entry chunk', t => {
   const { output } = t.context
-  t.assert(output.length > 0)
-  t.assert(output.find(file => file.fileName == 'index.html'))
-  t.assert(output.find(file => file.fileName == 'index.js'))
-  t.assert(output.find(file => file.name == 'worker.js'))
-  t.assert(output.find(file => file.name == 'asset.txt'))
+  const chunks = output.filter(file => file.type == 'chunk')
+  const file = chunks.find(chunk => chunk.fileName == 'index.js')
+  t.assert(file)
+})
+test('should generate a html asset', t => {
+  const { output } = t.context
+  const assets = output.filter(file => file.type == 'asset')
+  const file = assets.find(asset => asset.fileName == 'index.html')
+  t.assert(file)
+})
+test('should generate a worker asset', t => {
+  const { output } = t.context
+  const assets = output.filter(file => file.type == 'asset')
+  const file = assets.find(asset => asset.name == 'worker.js')
+  t.assert(file)
+})
+test('should generate a text asset', t => {
+  const { output } = t.context
+  const assets = output.filter(file => file.type == 'asset')
+  const file = assets.find(asset => asset.name == 'asset.txt')
+  t.assert(file)
 })
 test('static import should work', browser.giveNewPage, checkExample)
 test('nested import should work', browser.giveNewPage, checkExample)
