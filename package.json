@@ -21,7 +21,9 @@
     "build": "rollup -c",
     "clean": "node -r fs -e \"fs.rmdirSync('dist', { recursive: true })\"",
     "lint": "eslint .",
-    "test": "ava"
+    "test": "ava",
+    "simple-web-worker-example": "rollup -c -p \"serve={contentBase:'examples/simple-web-worker/dist'}\"",
+    "complex-web-worker-example": "rollup -c -p \"serve={contentBase:'examples/complex-web-worker/dist'}\""
   },
   "dependencies": {
     "@rollup/pluginutils": "^4.1.0"
