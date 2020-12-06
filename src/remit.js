@@ -53,15 +53,19 @@ function createRemitPlugin({
 
   async function remitOptions(inputOptions, outputOptions) {
     if (typeof options === 'function') {
-      ({ output: outputOptions, ...inputOptions } =
-        await options({ ...inputOptions, output: outputOptions }))
+      const combined = { ...inputOptions, output: outputOptions }
+      const { output = {}, ...input } = { ...await options(combined) }
+      inputOptions = input
+      outputOptions = output
     } else {
-      inputOptions = { ...inputOptions, ...options }
-      outputOptions = { ...outputOptions, ...options.output }
+      const { output = {}, ...input } = options
+      inputOptions = { ...inputOptions, ...input }
+      outputOptions = { ...outputOptions, ...output }
     }
 
     // Prevent runaway remits:
-    inputOptions.plugins = inputOptions.plugins.filter(p => p.name != name)
+    const { plugins = [] } = inputOptions
+    inputOptions.plugins = plugins.filter(p => p.name != name)
 
     return { inputOptions, outputOptions }
   }
