@@ -8,22 +8,13 @@ function pathname(id) {
 
 function createRemitPlugin({
   exclude,
-  format = 'iife',
   include,
-  inheritPlugins: {
-    include: pluginInclude,
-    exclude: pluginExclude = []
-  } = {}
+  options = {}
 } = {}) {
 
   const name = 'remit'
   const remitted = []
-  const sourcemap = true
-
-  const filterOptions = { resolve: false }
-  const filter = createFilter(include, exclude, filterOptions)
-  pluginExclude = [name].concat(pluginExclude)
-  const pluginFilter = createFilter(pluginInclude, pluginExclude, filterOptions)
+  const filter = createFilter(include, exclude, { resolve: false })
 
   function buildStart() {
     remitted.length = 0
@@ -60,31 +51,41 @@ function createRemitPlugin({
     }
   }
 
-  async function renderStart(outputOptions, { plugins: inputPlugins = [], ...inputOptions }) {
-    for (const remittee of remitted) {
-      const localInputOptions = {
-        ...inputOptions,
-        input: remittee.input,
-        plugins: inputPlugins.filter(({ name }) => pluginFilter(name))
-      }
-      const localOutputOptions = {
-        ...outputOptions,
-        format,
-        name: remittee.name,
-        plugins: [],
-        sourcemap
-      }
-      const localBundle = await rollup(localInputOptions)
-      const { output } = await localBundle.generate(localOutputOptions)
-      const localEntry = output.find(file => file.type === 'chunk' && file.isEntry)
-      // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
-      const localAssets = output.filter(file => file.type === 'asset')
+  async function remitOptions(inputOptions, outputOptions) {
+    if (typeof options === 'function') {
+      const combined = { ...inputOptions, output: outputOptions }
+      const { output = {}, ...input } = { ...await options(combined) }
+      inputOptions = input
+      outputOptions = output
+    } else {
+      const { output = {}, ...input } = options
+      inputOptions = { ...inputOptions, ...input }
+      outputOptions = { ...outputOptions, ...output }
+    }
 
-      for (const asset of localAssets) {
+    // Prevent runaway remits:
+    const { plugins = [] } = inputOptions
+    inputOptions.plugins = plugins.filter(p => p.name != name)
+
+    return { inputOptions, outputOptions }
+  }
+
+  async function renderStart(outputOptions, inputOptions) {
+    ({ inputOptions, outputOptions } =
+      await remitOptions(inputOptions, outputOptions))
+
+    for (const { input, name, ref } of remitted) {
+      const bundle = await rollup({ ...inputOptions, input })
+      const { output } = await bundle.generate({ ...outputOptions, name })
+      const entry = output.find(file => file.type === 'chunk' && file.isEntry)
+      // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
+      const assets = output.filter(file => file.type === 'asset')
+
+      for (const asset of assets) {
         this.emitFile(asset)
       }
 
-      this.setAssetSource(remittee.ref, localEntry.code)
+      this.setAssetSource(ref, entry.code)
     }
   }
 

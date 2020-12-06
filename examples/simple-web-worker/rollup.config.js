@@ -23,8 +23,11 @@ export default {
     }),
     remit({
       include: /worker\.js$/,
-      inheritPlugins: {
-        exclude: /html/
+      options: {
+        output: {
+          format: 'iife'
+        },
+        plugins: []
       }
     })
   ]
