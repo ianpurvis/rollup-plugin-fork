@@ -71,19 +71,17 @@ function createRemitPlugin({
       await remitOptions(inputOptions, outputOptions))
 
     for (const { input, name, ref } of remitted) {
-      const localInputOptions = { ...inputOptions, input }
-      const localOutputOptions = { ...outputOptions, name }
-      const localBundle = await rollup(localInputOptions)
-      const { output } = await localBundle.generate(localOutputOptions)
-      const localEntry = output.find(file => file.type === 'chunk' && file.isEntry)
+      const bundle = await rollup({ ...inputOptions, input })
+      const { output } = await bundle.generate({ ...outputOptions, name })
+      const entry = output.find(file => file.type === 'chunk' && file.isEntry)
       // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
-      const localAssets = output.filter(file => file.type === 'asset')
+      const assets = output.filter(file => file.type === 'asset')
 
-      for (const asset of localAssets) {
+      for (const asset of assets) {
         this.emitFile(asset)
       }
 
-      this.setAssetSource(ref, localEntry.code)
+      this.setAssetSource(ref, entry.code)
     }
   }
 
