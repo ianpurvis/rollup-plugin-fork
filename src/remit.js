@@ -8,22 +8,13 @@ function pathname(id) {
 
 function createRemitPlugin({
   exclude,
-  format = 'iife',
   include,
-  inheritPlugins: {
-    include: pluginInclude,
-    exclude: pluginExclude = []
-  } = {}
+  options: remitOptions = {}
 } = {}) {
 
   const name = 'remit'
   const remitted = []
-  const sourcemap = true
-
-  const filterOptions = { resolve: false }
-  const filter = createFilter(include, exclude, filterOptions)
-  pluginExclude = [name].concat(pluginExclude)
-  const pluginFilter = createFilter(pluginInclude, pluginExclude, filterOptions)
+  const filter = createFilter(include, exclude, { resolve: false })
 
   function buildStart() {
     remitted.length = 0
@@ -60,19 +51,27 @@ function createRemitPlugin({
     }
   }
 
-  async function renderStart(outputOptions, { plugins: inputPlugins = [], ...inputOptions }) {
+
+  async function renderStart(outputOptions, inputOptions) {
+    let options = { ...inputOptions, output: outputOptions }
+
+    if (typeof remitOptions === 'function') {
+      options = remitOptions(options)
+    } else {
+      options = { ...options, ...remitOptions }
+    }
+
+    ({ output: outputOptions, ...inputOptions } = options)
+
     for (const remittee of remitted) {
       const localInputOptions = {
         ...inputOptions,
         input: remittee.input,
-        plugins: inputPlugins.filter(({ name }) => pluginFilter(name))
+        plugins: inputOptions.plugins.filter(p => p.name != name) // prevent circle
       }
       const localOutputOptions = {
         ...outputOptions,
-        format,
         name: remittee.name,
-        plugins: [],
-        sourcemap
       }
       const localBundle = await rollup(localInputOptions)
       const { output } = await localBundle.generate(localOutputOptions)

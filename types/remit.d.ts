@@ -1,4 +1,4 @@
-import { Plugin } from 'rollup'
+import { Plugin, RollupOptions } from 'rollup'
 
 // Redeclare FilterPattern instead of importing from @rollup/pluginutils
 // in order to avoid missing estree error:
@@ -7,11 +7,7 @@ export type FilterPattern = ReadonlyArray<string | RegExp> | string | RegExp | n
 export interface RollupRemitPluginOptions {
   include?: FilterPattern
   exclude?: FilterPattern
-  format?: string
-  inheritPlugins?: {
-    include?: FilterPattern
-    exclude?: FilterPattern
-  }
+  options?: RollupOptions | ((options: RollupOptions) => RollupOptions)
 }
 
 export default function createRemitPlugin(options?: RollupRemitPluginOptions): Plugin
