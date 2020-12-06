@@ -26,19 +26,19 @@ export default {
     asset({
       include: /\.txt$/
     }),
-    worker({
-      include: /worker\.js$/,
-    }),
     remit({
       include: /worker\.js$/,
       options({ output, plugins, ...options }) {
         return {
+          ...options,
           output: {
             ...output,
             format: 'iife'
           },
-          plugins: plugins.filter(plugin => plugin.name != 'html'),
-          ...options
+          plugins: [
+            ...plugins.filter(plugin => plugin.name == 'asset'),
+            worker()
+          ]
         }
       }
     })
