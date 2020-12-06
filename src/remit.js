@@ -9,7 +9,7 @@ function pathname(id) {
 function createRemitPlugin({
   exclude,
   include,
-  options: remitOptions = {}
+  options = {}
 } = {}) {
 
   const name = 'remit'
@@ -51,28 +51,28 @@ function createRemitPlugin({
     }
   }
 
-
-  async function renderStart(outputOptions, inputOptions) {
-    let options = { ...inputOptions, output: outputOptions }
-
-    if (typeof remitOptions === 'function') {
-      options = remitOptions(options)
+  async function remitOptions(inputOptions, outputOptions) {
+    if (typeof options === 'function') {
+      ({ output: outputOptions, ...inputOptions } =
+        await options({ ...inputOptions, output: outputOptions }))
     } else {
-      options = { ...options, ...remitOptions }
+      inputOptions = { ...inputOptions, ...options }
+      outputOptions = { ...outputOptions, ...options.output }
     }
 
-    ({ output: outputOptions, ...inputOptions } = options)
+    // Prevent runaway remits:
+    inputOptions.plugins = inputOptions.plugins.filter(p => p.name != name)
 
-    for (const remittee of remitted) {
-      const localInputOptions = {
-        ...inputOptions,
-        input: remittee.input,
-        plugins: inputOptions.plugins.filter(p => p.name != name) // prevent circle
-      }
-      const localOutputOptions = {
-        ...outputOptions,
-        name: remittee.name,
-      }
+    return { inputOptions, outputOptions }
+  }
+
+  async function renderStart(outputOptions, inputOptions) {
+    ({ inputOptions, outputOptions } =
+      await remitOptions(inputOptions, outputOptions))
+
+    for (const { input, name, ref } of remitted) {
+      const localInputOptions = { ...inputOptions, input }
+      const localOutputOptions = { ...outputOptions, name }
       const localBundle = await rollup(localInputOptions)
       const { output } = await localBundle.generate(localOutputOptions)
       const localEntry = output.find(file => file.type === 'chunk' && file.isEntry)
@@ -83,7 +83,7 @@ function createRemitPlugin({
         this.emitFile(asset)
       }
 
-      this.setAssetSource(remittee.ref, localEntry.code)
+      this.setAssetSource(ref, localEntry.code)
     }
   }
 
