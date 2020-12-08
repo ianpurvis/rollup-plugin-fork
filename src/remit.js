@@ -54,6 +54,8 @@ function createRemitPlugin({
     delete outputOptions.dir
     delete outputOptions.file
 
+    const { input: expectedInput } = inputOptions
+
     if (typeof options === 'function') {
       const combined = { ...inputOptions, output: outputOptions }
       const { output = {}, ...input } = await options(combined) || combined
@@ -63,6 +65,11 @@ function createRemitPlugin({
       const { output = {}, ...input } = options
       inputOptions = { ...inputOptions, ...input }
       outputOptions = { ...outputOptions, ...output }
+    }
+
+    if (inputOptions.input !== expectedInput) {
+      throw new Error('Remit plugin options must not modify the value of "input".' +
+        ` Expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(inputOptions.input)}`)
     }
 
     // Prevent runaway remits:

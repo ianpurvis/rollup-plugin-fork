@@ -107,6 +107,7 @@ test('output.file should be used for the entry filename', async t => {
   t.is(remitted.fileName, 'child.js')
 })
 
+
 test('input should be the full path of the remitted file', async t => {
   const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
   let actualInput
@@ -129,6 +130,30 @@ test('input should be the full path of the remitted file', async t => {
   await bundle.generate(options.output)
 
   t.is(actualInput, expectedInput)
+})
+
+test('modifying input results in an error', async t => {
+  const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
+  const expectedError = {
+    code: 'PLUGIN_ERROR',
+    message: `Remit plugin options must not modify the value of "input". Expected "${expectedInput}" but was "mutated.js"`
+  }
+
+  const options = {
+    input,
+    output: {},
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options: {
+          input: 'mutated.js'
+        },
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+
+  await t.throwsAsync(bundle.generate(options.output), expectedError)
 })
 
 
