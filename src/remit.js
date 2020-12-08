@@ -54,7 +54,7 @@ function createRemitPlugin({
   async function remitOptions(inputOptions, outputOptions) {
     if (typeof options === 'function') {
       const combined = { ...inputOptions, output: outputOptions }
-      const { output = {}, ...input } = { ...await options(combined) }
+      const { output = {}, ...input } = await options(combined) || combined
       inputOptions = input
       outputOptions = output
     } else {
