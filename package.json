@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-remit",
-  "description": "Build a nested bundle and emit it",
+  "description": "A rollup plugin that spawns rollup, emitting the output back into the main build.",
   "author": "Ian Purvis <ian@purvisresearch.com>",
   "license": "MIT",
   "version": "0.1.0",
