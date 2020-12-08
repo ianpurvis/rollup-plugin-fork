@@ -51,6 +51,7 @@ function createRemitPlugin({
   }
 
   async function remitOptions(inputOptions, outputOptions) {
+    delete outputOptions.dir
     delete outputOptions.file
 
     if (typeof options === 'function') {

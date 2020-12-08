@@ -4,6 +4,34 @@ import remit from '../src/remit.js'
 
 const input = new URL('./fixtures/main.js', import.meta.url).pathname
 
+
+test('output.dir should not be inherited', async t => {
+  let actualOutputDir
+
+  const options = {
+    input,
+    output: {
+      dir: 'parent'
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options(options) {
+          actualOutputDir = options.output.dir
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  const { output } = await bundle.generate(options.output)
+  const [ main, remitted ] = output
+
+  t.is(actualOutputDir, undefined)
+  t.is(main.fileName, 'main.js')
+  t.is(remitted.fileName, 'remitted.js')
+})
+
+
 test('output.file should not be inherited', async t => {
   let actualOutputFile
 
