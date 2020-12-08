@@ -83,6 +83,7 @@ test('output.file should not be inherited', async t => {
   t.is(remitted.fileName, 'remitted.js')
 })
 
+
 test('output.file should be used for the entry filename', async t => {
   const options = {
     input,
@@ -104,6 +105,30 @@ test('output.file should be used for the entry filename', async t => {
 
   t.is(main.fileName, 'main.js')
   t.is(remitted.fileName, 'child.js')
+})
+
+test('input should be the full path of the remitted file', async t => {
+  const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
+  let actualInput
+
+  const options = {
+    input,
+    output: {
+      file: 'parent.js'
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options(options) {
+          actualInput = options.input
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  await bundle.generate(options.output)
+
+  t.is(actualInput, expectedInput)
 })
 
 
