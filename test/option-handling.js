@@ -32,6 +32,31 @@ test('output.dir should not be inherited', async t => {
 })
 
 
+test('output.dir should be prepended to all filenames', async t => {
+  const options = {
+    input,
+    output: {
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options: {
+          output: {
+            dir: 'child'
+          }
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  const { output } = await bundle.generate(options.output)
+  const [ main, remitted ] = output
+
+  t.is(main.fileName, 'main.js')
+  t.is(remitted.fileName, 'child/remitted.js')
+})
+
+
 test('output.file should not be inherited', async t => {
   let actualOutputFile
 

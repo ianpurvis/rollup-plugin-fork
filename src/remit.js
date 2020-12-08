@@ -1,4 +1,4 @@
-import { basename } from 'path'
+import { basename, join } from 'path'
 import { rollup } from 'rollup'
 import { createFilter } from '@rollup/pluginutils'
 
@@ -85,16 +85,24 @@ function createRemitPlugin({
 
       const bundle = await rollup(inputOptions)
       const { output } = await bundle.generate(outputOptions)
-      const entry = output.find(file => file.type === 'chunk' && file.isEntry)
-      // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
-      const assets = output.filter(file => file.type === 'asset')
 
-      for (const asset of assets) {
-        this.emitFile(asset)
+      for (const file of output) {
+        const fileName = join(outputOptions.dir || '', file.fileName)
+
+        if (file.isEntry && file.facadeModuleId == remittee.input) {
+          remittee.fileName = fileName
+          this.setAssetSource(remittee.ref, file.code)
+        } else {
+          // delete isAsset before spreading to avoid deprecation warning
+          delete file.isAsset
+          this.emitFile({
+            ...file,
+            fileName,
+            source: file.code || file.source,
+            type: 'asset'
+          })
+        }
       }
-
-      remittee.fileName = entry.fileName
-      this.setAssetSource(remittee.ref, entry.code)
     }
   }
 
