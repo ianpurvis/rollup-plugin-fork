@@ -1,0 +1,32 @@
+import test from 'ava'
+import { rollup } from 'rollup'
+import remit from '../src/remit.js'
+
+const input = new URL('./fixtures/main.js', import.meta.url).pathname
+
+
+test('output.entryFileNames should be inherited', async t => {
+  let actualEntryFileNames
+
+  const options = {
+    input,
+    output: {
+      entryFileNames: 'inherited-[name].js'
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options(options) {
+          actualEntryFileNames = options.output.entryFileNames
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  const { output } = await bundle.generate(options.output)
+  const [ main, remitted ] = output
+
+  t.is(actualEntryFileNames, 'inherited-[name].js')
+  t.is(main.fileName, 'inherited-main.js')
+  t.is(remitted.fileName, 'inherited-remitted.js')
+})

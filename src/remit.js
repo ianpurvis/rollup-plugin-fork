@@ -30,24 +30,23 @@ function createRemitPlugin({
     return `export default ${fileUrl}`
   }
 
-  function outputOptions({
-    // filename functions cannot return undefined.
-    // re-create rollup defaults as a workaround:
-    assetFileNames = 'assets/[name]-[hash][extname]',
-    chunkFileNames = '[name]-[hash].js',
-    ...options
-  }) {
+  function outputOptions(options) {
+    // Unconfigured `assetFileNames` will be undefined here because the default
+    // value does not get injected until after all `outputOptions` hooks are
+    // complete.  Since the remit wrapper function must not return undefined,
+    // re-create the documented default value:
+    const { assetFileNames = 'assets/[name]-[hash][extname]' } = options
+
     return {
+      ...options,
       assetFileNames(assetInfo) {
-        for (const { name } of remitted) {
+        for (const { name, fileName } of remitted) {
           if (assetInfo.name == name) {
-            return chunkFileNames
+            return fileName
           }
         }
         return assetFileNames
-      },
-      chunkFileNames,
-      ...options,
+      }
     }
   }
 
@@ -74,9 +73,9 @@ function createRemitPlugin({
     ({ inputOptions, outputOptions } =
       await remitOptions(inputOptions, outputOptions))
 
-    for (const { input, name, ref } of remitted) {
-      const bundle = await rollup({ ...inputOptions, input })
-      const { output } = await bundle.generate({ ...outputOptions, name })
+    for (const remittee of remitted) {
+      const bundle = await rollup({ ...inputOptions, input: remittee.input })
+      const { output } = await bundle.generate({ ...outputOptions, name: remittee.name })
       const entry = output.find(file => file.type === 'chunk' && file.isEntry)
       // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
       const assets = output.filter(file => file.type === 'asset')
@@ -85,7 +84,8 @@ function createRemitPlugin({
         this.emitFile(asset)
       }
 
-      this.setAssetSource(ref, entry.code)
+      remittee.fileName = entry.fileName
+      this.setAssetSource(remittee.ref, entry.code)
     }
   }
 
