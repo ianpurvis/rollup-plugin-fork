@@ -30,6 +30,29 @@ test('output.file should not be inherited', async t => {
   t.is(remitted.fileName, 'remitted.js')
 })
 
+test('output.file should be used for the entry filename', async t => {
+  const options = {
+    input,
+    output: {},
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options: {
+          output: {
+            file: 'child.js'
+          }
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  const { output } = await bundle.generate(options.output)
+  const [ main, remitted ] = output
+
+  t.is(main.fileName, 'main.js')
+  t.is(remitted.fileName, 'child.js')
+})
+
 
 test('output.entryFileNames should be inherited', async t => {
   let actualEntryFileNames
