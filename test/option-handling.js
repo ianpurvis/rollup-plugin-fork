@@ -250,3 +250,44 @@ test('output.assetFileNames should be inherited', async t => {
   const actualAssetName = actualAssetFileNames({ name: 'asset.txt' })
   t.is(actualAssetName, 'inherited-[name].[ext]')
 })
+
+
+test('output.chunkFileNames should be inherited', async t => {
+  let actualChunkFileNames
+
+  const options = {
+    input,
+    output: {
+      chunkFileNames: 'inherited-[name].js',
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options(options) {
+          actualChunkFileNames = options.output.chunkFileNames
+          return {
+            ...options,
+            plugins: [{
+              buildStart() {
+                this.emitFile({
+                  id: new URL('./fixtures/remitted-static-import.js', import.meta.url).pathname,
+                  name: 'chunk',
+                  code: 'export default "NOT_EMPTY"',
+                  type: 'chunk'
+                })
+              }
+            }]
+          }
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  const { output } = await bundle.generate(options.output)
+  const [ main, remitted, chunk ] = output
+
+  t.is(actualChunkFileNames, 'inherited-[name].js')
+  t.is(main.fileName, 'main.js')
+  t.is(remitted.fileName, 'remitted.js')
+  t.is(chunk.fileName, 'inherited-chunk.js')
+})
