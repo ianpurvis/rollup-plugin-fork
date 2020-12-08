@@ -51,6 +51,8 @@ function createRemitPlugin({
   }
 
   async function remitOptions(inputOptions, outputOptions) {
+    delete outputOptions.file
+
     if (typeof options === 'function') {
       const combined = { ...inputOptions, output: outputOptions }
       const { output = {}, ...input } = await options(combined) || combined
@@ -70,12 +72,18 @@ function createRemitPlugin({
   }
 
   async function renderStart(outputOptions, inputOptions) {
-    ({ inputOptions, outputOptions } =
-      await remitOptions(inputOptions, outputOptions))
+    const originalOutputOptions = outputOptions
+    const originalInputOptions = inputOptions
 
     for (const remittee of remitted) {
-      const bundle = await rollup({ ...inputOptions, input: remittee.input })
-      const { output } = await bundle.generate({ ...outputOptions, name: remittee.name })
+      inputOptions = { ...originalInputOptions, input: remittee.input }
+      outputOptions = { ...originalOutputOptions }
+
+      ;({ inputOptions, outputOptions } =
+        await remitOptions(inputOptions, outputOptions))
+
+      const bundle = await rollup(inputOptions)
+      const { output } = await bundle.generate(outputOptions)
       const entry = output.find(file => file.type === 'chunk' && file.isEntry)
       // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
       const assets = output.filter(file => file.type === 'asset')
