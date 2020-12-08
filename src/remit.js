@@ -54,6 +54,10 @@ function createRemitPlugin({
     delete outputOptions.dir
     delete outputOptions.file
 
+    // Prevent runaway remits:
+    const { plugins = [] } = inputOptions
+    inputOptions.plugins = plugins.filter(p => p.name != name)
+
     const { input: expectedInput } = inputOptions
 
     if (typeof options === 'function') {
@@ -71,10 +75,6 @@ function createRemitPlugin({
       throw new Error('Remit plugin options must not modify the value of "input".' +
         ` Expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(inputOptions.input)}`)
     }
-
-    // Prevent runaway remits:
-    const { plugins = [] } = inputOptions
-    inputOptions.plugins = plugins.filter(p => p.name != name)
 
     return { inputOptions, outputOptions }
   }

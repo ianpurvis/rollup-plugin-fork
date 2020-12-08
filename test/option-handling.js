@@ -157,6 +157,30 @@ test('modifying input results in an error', async t => {
 })
 
 
+test('plugins should not inherit remit', async t => {
+  let actualPlugins
+
+  const options = {
+    input,
+    output: {
+      file: 'parent.js'
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options(options) {
+          actualPlugins = options.plugins
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  await bundle.generate(options.output)
+
+  t.deepEqual(actualPlugins, [])
+})
+
+
 test('output.entryFileNames should be inherited', async t => {
   let actualEntryFileNames
 
