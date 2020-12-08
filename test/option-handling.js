@@ -206,3 +206,47 @@ test('output.entryFileNames should be inherited', async t => {
   t.is(main.fileName, 'inherited-main.js')
   t.is(remitted.fileName, 'inherited-remitted.js')
 })
+
+
+test('output.assetFileNames should be inherited', async t => {
+  let actualAssetFileNames
+
+  const options = {
+    input,
+    output: {
+      assetFileNames: 'inherited-[name].[ext]'
+    },
+    plugins: [
+      remit({
+        include: /remitted\.js$/,
+        options(options) {
+          actualAssetFileNames = options.output.assetFileNames
+          return {
+            ...options,
+            plugins: [{
+              generateBundle() {
+                this.emitFile({ name: 'asset.txt', source: '', type: 'asset' })
+              }
+            }]
+          }
+        }
+      })
+    ]
+  }
+  const bundle = await rollup(options)
+  const { output } = await bundle.generate(options.output)
+  const [ main, remitted, asset ] = output
+
+  t.is(main.fileName, 'main.js')
+  t.is(remitted.fileName, 'remitted.js')
+  t.is(asset.fileName, 'inherited-asset.txt')
+
+  // Test wrapper function
+  t.is(typeof actualAssetFileNames, 'function')
+
+  const actualRemittedName = actualAssetFileNames({ name: 'remitted.js' })
+  t.is(actualRemittedName, 'remitted.js')
+
+  const actualAssetName = actualAssetFileNames({ name: 'asset.txt' })
+  t.is(actualAssetName, 'inherited-[name].[ext]')
+})
