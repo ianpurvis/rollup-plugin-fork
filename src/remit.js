@@ -1,4 +1,4 @@
-import { basename } from 'path'
+import { basename, join } from 'path'
 import { rollup } from 'rollup'
 import { createFilter } from '@rollup/pluginutils'
 
@@ -30,31 +30,39 @@ function createRemitPlugin({
     return `export default ${fileUrl}`
   }
 
-  function outputOptions({
-    // filename functions cannot return undefined.
-    // re-create rollup defaults as a workaround:
-    assetFileNames = 'assets/[name]-[hash][extname]',
-    chunkFileNames = '[name]-[hash].js',
-    ...options
-  }) {
+  function outputOptions(options) {
+    // Unconfigured `assetFileNames` will be undefined here because the default
+    // value does not get injected until after all `outputOptions` hooks are
+    // complete.  Since the remit wrapper function must not return undefined,
+    // re-create the documented default value:
+    const { assetFileNames = 'assets/[name]-[hash][extname]' } = options
+
     return {
+      ...options,
       assetFileNames(assetInfo) {
-        for (const { name } of remitted) {
+        for (const { name, fileName } of remitted) {
           if (assetInfo.name == name) {
-            return chunkFileNames
+            return fileName
           }
         }
         return assetFileNames
-      },
-      chunkFileNames,
-      ...options,
+      }
     }
   }
 
   async function remitOptions(inputOptions, outputOptions) {
+    delete outputOptions.dir
+    delete outputOptions.file
+
+    // Prevent runaway remits:
+    const { plugins = [] } = inputOptions
+    inputOptions.plugins = plugins.filter(p => p.name != name)
+
+    const { input: expectedInput } = inputOptions
+
     if (typeof options === 'function') {
       const combined = { ...inputOptions, output: outputOptions }
-      const { output = {}, ...input } = { ...await options(combined) }
+      const { output = {}, ...input } = await options(combined) || combined
       inputOptions = input
       outputOptions = output
     } else {
@@ -63,29 +71,45 @@ function createRemitPlugin({
       outputOptions = { ...outputOptions, ...output }
     }
 
-    // Prevent runaway remits:
-    const { plugins = [] } = inputOptions
-    inputOptions.plugins = plugins.filter(p => p.name != name)
+    if (inputOptions.input !== expectedInput) {
+      throw new Error('Remit plugin options must not modify the value of "input".' +
+        ` Expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(inputOptions.input)}`)
+    }
 
     return { inputOptions, outputOptions }
   }
 
   async function renderStart(outputOptions, inputOptions) {
-    ({ inputOptions, outputOptions } =
-      await remitOptions(inputOptions, outputOptions))
+    const originalOutputOptions = outputOptions
+    const originalInputOptions = inputOptions
 
-    for (const { input, name, ref } of remitted) {
-      const bundle = await rollup({ ...inputOptions, input })
-      const { output } = await bundle.generate({ ...outputOptions, name })
-      const entry = output.find(file => file.type === 'chunk' && file.isEntry)
-      // const localChunks = output.filter(file => file.type === 'chunk' && !file.isEntry)
-      const assets = output.filter(file => file.type === 'asset')
+    for (const remittee of remitted) {
+      inputOptions = { ...originalInputOptions, input: remittee.input }
+      outputOptions = { ...originalOutputOptions }
 
-      for (const asset of assets) {
-        this.emitFile(asset)
+      ;({ inputOptions, outputOptions } =
+        await remitOptions(inputOptions, outputOptions))
+
+      const bundle = await rollup(inputOptions)
+      const { output } = await bundle.generate(outputOptions)
+
+      for (const file of output) {
+        const fileName = join(outputOptions.dir || '', file.fileName)
+
+        if (file.isEntry && file.facadeModuleId == remittee.input) {
+          remittee.fileName = fileName
+          this.setAssetSource(remittee.ref, file.code)
+        } else {
+          // delete isAsset before spreading to avoid deprecation warning
+          delete file.isAsset
+          this.emitFile({
+            ...file,
+            fileName,
+            source: file.code || file.source,
+            type: 'asset'
+          })
+        }
       }
-
-      this.setAssetSource(ref, entry.code)
     }
   }
 
