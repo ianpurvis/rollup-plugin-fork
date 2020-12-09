@@ -1,0 +1,11 @@
+---
+version: 2
+updates:
+  - package-ecosystem: npm
+    commit-message:
+      prefix: 'chore: '
+    directory: '/'
+    schedule:
+      interval: daily
+      time: '08:00'
+      timezone: US/Central
