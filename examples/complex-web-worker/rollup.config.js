@@ -28,17 +28,19 @@ export default {
     }),
     remit({
       include: /worker\.js$/,
-      options({ output, plugins, ...options }) {
+      inputOptions({ plugins = [], ...options }) {
         return {
           ...options,
-          output: {
-            ...output,
-            format: 'iife'
-          },
           plugins: [
             ...plugins.filter(plugin => plugin.name == 'asset'),
             worker()
           ]
+        }
+      },
+      outputOptions(options) {
+        return {
+          ...options,
+          format: 'iife'
         }
       }
     })

@@ -5,8 +5,8 @@ import remit from '../src/remit.js'
 const input = new URL('./fixtures/main.js', import.meta.url).pathname
 
 
-test('output.dir should not be inherited', async t => {
-  let actualOutputDir
+test('dir should not be inherited', async t => {
+  let actualDir
 
   const options = {
     input,
@@ -16,8 +16,8 @@ test('output.dir should not be inherited', async t => {
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options(options) {
-          actualOutputDir = options.output.dir
+        outputOptions(options) {
+          actualDir = options.dir
         }
       })
     ]
@@ -26,13 +26,13 @@ test('output.dir should not be inherited', async t => {
   const { output } = await bundle.generate(options.output)
   const [ main, remitted ] = output
 
-  t.is(actualOutputDir, undefined)
+  t.is(actualDir, undefined)
   t.is(main.fileName, 'main.js')
   t.is(remitted.fileName, 'remitted.js')
 })
 
 
-test('output.dir should be prepended to all filenames', async t => {
+test('dir should be prepended to all filenames', async t => {
   const options = {
     input,
     output: {
@@ -40,10 +40,8 @@ test('output.dir should be prepended to all filenames', async t => {
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options: {
-          output: {
-            dir: 'child'
-          }
+        outputOptions: {
+          dir: 'child'
         }
       })
     ]
@@ -57,8 +55,8 @@ test('output.dir should be prepended to all filenames', async t => {
 })
 
 
-test('output.file should not be inherited', async t => {
-  let actualOutputFile
+test('file should not be inherited', async t => {
+  let actualFile
 
   const options = {
     input,
@@ -68,8 +66,8 @@ test('output.file should not be inherited', async t => {
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options(options) {
-          actualOutputFile = options.output.file
+        outputOptions(options) {
+          actualFile = options.file
         }
       })
     ]
@@ -78,23 +76,21 @@ test('output.file should not be inherited', async t => {
   const { output } = await bundle.generate(options.output)
   const [ main, remitted ] = output
 
-  t.is(actualOutputFile, undefined)
+  t.is(actualFile, undefined)
   t.is(main.fileName, 'parent.js')
   t.is(remitted.fileName, 'remitted.js')
 })
 
 
-test('output.file should be used for the entry filename', async t => {
+test('file should be used for the entry filename', async t => {
   const options = {
     input,
     output: {},
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options: {
-          output: {
-            file: 'child.js'
-          }
+        outputOptions: {
+          file: 'child.js'
         }
       })
     ]
@@ -108,80 +104,7 @@ test('output.file should be used for the entry filename', async t => {
 })
 
 
-test('input should be the full path of the remitted file', async t => {
-  const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
-  let actualInput
-
-  const options = {
-    input,
-    output: {
-      file: 'parent.js'
-    },
-    plugins: [
-      remit({
-        include: /remitted\.js$/,
-        options(options) {
-          actualInput = options.input
-        }
-      })
-    ]
-  }
-  const bundle = await rollup(options)
-  await bundle.generate(options.output)
-
-  t.is(actualInput, expectedInput)
-})
-
-test('modifying input results in an error', async t => {
-  const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
-  const expectedError = {
-    code: 'PLUGIN_ERROR',
-    message: `Remit plugin options must not modify the value of "input". Expected "${expectedInput}" but was "mutated.js"`
-  }
-
-  const options = {
-    input,
-    output: {},
-    plugins: [
-      remit({
-        include: /remitted\.js$/,
-        options: {
-          input: 'mutated.js'
-        },
-      })
-    ]
-  }
-  const bundle = await rollup(options)
-
-  await t.throwsAsync(bundle.generate(options.output), expectedError)
-})
-
-
-test('plugins should not inherit remit', async t => {
-  let actualPlugins
-
-  const options = {
-    input,
-    output: {
-      file: 'parent.js'
-    },
-    plugins: [
-      remit({
-        include: /remitted\.js$/,
-        options(options) {
-          actualPlugins = options.plugins
-        }
-      })
-    ]
-  }
-  const bundle = await rollup(options)
-  await bundle.generate(options.output)
-
-  t.deepEqual(actualPlugins, [])
-})
-
-
-test('output.entryFileNames should be inherited', async t => {
+test('entryFileNames should be inherited', async t => {
   let actualEntryFileNames
 
   const options = {
@@ -192,8 +115,8 @@ test('output.entryFileNames should be inherited', async t => {
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options(options) {
-          actualEntryFileNames = options.output.entryFileNames
+        outputOptions(options) {
+          actualEntryFileNames = options.entryFileNames
         }
       })
     ]
@@ -208,7 +131,7 @@ test('output.entryFileNames should be inherited', async t => {
 })
 
 
-test('output.assetFileNames should be inherited', async t => {
+test('assetFileNames should be inherited', async t => {
   let actualAssetFileNames
 
   const options = {
@@ -219,16 +142,15 @@ test('output.assetFileNames should be inherited', async t => {
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options(options) {
-          actualAssetFileNames = options.output.assetFileNames
-          return {
-            ...options,
-            plugins: [{
-              generateBundle() {
-                this.emitFile({ name: 'asset.txt', source: '', type: 'asset' })
-              }
-            }]
-          }
+        inputOptions: {
+          plugins: [{
+            generateBundle() {
+              this.emitFile({ name: 'asset.txt', source: '', type: 'asset' })
+            }
+          }]
+        },
+        outputOptions(options) {
+          actualAssetFileNames = options.assetFileNames
         }
       })
     ]
@@ -252,7 +174,7 @@ test('output.assetFileNames should be inherited', async t => {
 })
 
 
-test('output.chunkFileNames should be inherited', async t => {
+test('chunkFileNames should be inherited', async t => {
   let actualChunkFileNames
 
   const options = {
@@ -263,21 +185,20 @@ test('output.chunkFileNames should be inherited', async t => {
     plugins: [
       remit({
         include: /remitted\.js$/,
-        options(options) {
-          actualChunkFileNames = options.output.chunkFileNames
-          return {
-            ...options,
-            plugins: [{
-              buildStart() {
-                this.emitFile({
-                  id: new URL('./fixtures/remitted-static-import.js', import.meta.url).pathname,
-                  name: 'chunk',
-                  code: 'export default "NOT_EMPTY"',
-                  type: 'chunk'
-                })
-              }
-            }]
-          }
+        inputOptions: {
+          plugins: [{
+            buildStart() {
+              this.emitFile({
+                id: new URL('./fixtures/remitted-static-import.js', import.meta.url).pathname,
+                name: 'chunk',
+                code: 'export default "NOT_EMPTY"',
+                type: 'chunk'
+              })
+            }
+          }]
+        },
+        outputOptions(options) {
+          actualChunkFileNames = options.chunkFileNames
         }
       })
     ]

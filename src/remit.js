@@ -9,7 +9,8 @@ function pathname(id) {
 function createRemitPlugin({
   exclude,
   include,
-  options = {}
+  inputOptions: remitInputOptions = {},
+  outputOptions: remitOutputOptions = {}
 } = {}) {
 
   const name = 'remit'
@@ -50,51 +51,50 @@ function createRemitPlugin({
     }
   }
 
-  async function remitOptions(inputOptions, outputOptions) {
-    delete outputOptions.dir
-    delete outputOptions.file
-
+  async function inheritInputOptions({ ...options }) {
     // Prevent runaway remits:
-    const { plugins = [] } = inputOptions
-    inputOptions.plugins = plugins.filter(p => p.name != name)
+    const { plugins = [] } = options
+    options.plugins = plugins.filter(p => p.name != name)
 
-    const { input: expectedInput } = inputOptions
+    const { input: expectedInput } = options
 
-    if (typeof options === 'function') {
-      const combined = { ...inputOptions, output: outputOptions }
-      const { output = {}, ...input } = await options(combined) || combined
-      inputOptions = input
-      outputOptions = output
+    if (typeof remitInputOptions === 'function') {
+      options = await remitInputOptions(options) || options
     } else {
-      const { output = {}, ...input } = options
-      inputOptions = { ...inputOptions, ...input }
-      outputOptions = { ...outputOptions, ...output }
+      options = { ...options, ...remitInputOptions }
     }
 
-    if (inputOptions.input !== expectedInput) {
+    if (options.input !== expectedInput) {
       throw new Error('Remit plugin options must not modify the value of "input".' +
-        ` Expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(inputOptions.input)}`)
+        ` Expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(options.input)}`)
     }
 
-    return { inputOptions, outputOptions }
+    return options
+  }
+
+  async function inheritOutputOptions({ ...options }) {
+    delete options.dir
+    delete options.file
+
+    if (typeof remitOutputOptions === 'function') {
+      options = await remitOutputOptions(options) || options
+    } else {
+      options = { ...options, ...remitOutputOptions }
+    }
+
+    return options
   }
 
   async function renderStart(outputOptions, inputOptions) {
-    const originalOutputOptions = outputOptions
-    const originalInputOptions = inputOptions
-
     for (const remittee of remitted) {
-      inputOptions = { ...originalInputOptions, input: remittee.input }
-      outputOptions = { ...originalOutputOptions }
-
-      ;({ inputOptions, outputOptions } =
-        await remitOptions(inputOptions, outputOptions))
-
-      const bundle = await rollup(inputOptions)
-      const { output } = await bundle.generate(outputOptions)
+      const localInputOptions =
+        await inheritInputOptions({ ...inputOptions, input: remittee.input })
+      const localOutputOptions = await inheritOutputOptions(outputOptions)
+      const bundle = await rollup(localInputOptions)
+      const { output } = await bundle.generate(localOutputOptions)
 
       for (const file of output) {
-        const fileName = join(outputOptions.dir || '', file.fileName)
+        const fileName = join(localOutputOptions.dir || '', file.fileName)
 
         if (file.isEntry && file.facadeModuleId == remittee.input) {
           remittee.fileName = fileName

@@ -23,11 +23,11 @@ export default {
     }),
     remit({
       include: /worker\.js$/,
-      options: {
-        output: {
-          format: 'iife'
-        },
+      inputOptions: {
         plugins: []
+      },
+      outputOptions: {
+        format: 'iife'
       }
     })
   ]
