@@ -87,10 +87,8 @@
       plugins: [
         remit({
           include: /worker\.js$/,
-          options: {
-            output: {
-              format: 'iife'
-            }
+          outputOptions: {
+            format: 'iife'
           }
         })
       ]
