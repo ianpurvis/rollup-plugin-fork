@@ -26,9 +26,8 @@ function createRemitPlugin({
     const input = pathname(id)
     const name = basename(input)
     const ref = this.emitFile({ name, type: 'asset' })
-    const fileUrl = `import.meta.ROLLUP_FILE_URL_${ref}`
-    remitted.push({ id, input, name, ref, fileUrl })
-    return `export default ${fileUrl}`
+    remitted.push({ id, input, name, ref })
+    return `export default import.meta.ROLLUP_FILE_URL_${ref}`
   }
 
   function outputOptions(options) {
