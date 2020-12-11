@@ -14,11 +14,11 @@ function createRemitPlugin({
 } = {}) {
 
   const name = 'remit'
-  const remitted = []
   const filter = createFilter(include, exclude, { resolve: false })
+  const forks = []
 
   function buildStart() {
-    remitted.length = 0
+    forks.length = 0
   }
 
   function load(id) {
@@ -26,7 +26,7 @@ function createRemitPlugin({
     const input = pathname(id)
     const name = basename(input)
     const ref = this.emitFile({ name, type: 'asset' })
-    remitted.push({ id, input, name, ref })
+    forks.push({ id, input, name, ref })
     return `export default import.meta.ROLLUP_FILE_URL_${ref}`
   }
 
@@ -40,7 +40,7 @@ function createRemitPlugin({
     return {
       ...options,
       assetFileNames(assetInfo) {
-        for (const { name, fileName } of remitted) {
+        for (const { name, fileName } of forks) {
           if (assetInfo.name == name) {
             return fileName
           }
@@ -85,14 +85,14 @@ function createRemitPlugin({
   }
 
   async function renderStart(outputOptions, inputOptions) {
-    for (const remittee of remitted) {
-      const { input } = remittee
-      remittee.inputOptions = await inheritInputOptions({ ...inputOptions, input })
-      remittee.outputOptions = await inheritOutputOptions(outputOptions)
+    for (const fork of forks) {
+      const { input } = fork
+      fork.inputOptions = await inheritInputOptions({ ...inputOptions, input })
+      fork.outputOptions = await inheritOutputOptions(outputOptions)
     }
 
-    for (const remittee of remitted) {
-      const { input, inputOptions, outputOptions, ref } = remittee
+    for (const fork of forks) {
+      const { input, inputOptions, outputOptions, ref } = fork
       const bundle = await rollup(inputOptions)
       const { output } = await bundle.generate(outputOptions)
 
@@ -103,17 +103,17 @@ function createRemitPlugin({
 
       for (const { fileName, facadeModuleId, code } of output) {
         if (facadeModuleId == input) {
-          remittee.fileName = fileName
+          fork.fileName = fileName
           this.setAssetSource(ref, code)
         }
       }
 
-      remittee.output = output
+      fork.output = output
     }
   }
 
   function generateBundle(_, bundle) {
-    for (const { output } of remitted) {
+    for (const { output } of forks) {
       for (const { fileName, name, code, source } of output) {
         const existing = bundle[fileName]
 
