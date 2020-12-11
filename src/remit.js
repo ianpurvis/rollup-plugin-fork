@@ -86,42 +86,41 @@ function createRemitPlugin({
 
   async function renderStart(outputOptions, inputOptions) {
     for (const remittee of remitted) {
-      const localInputOptions =
-        await inheritInputOptions({ ...inputOptions, input: remittee.input })
-      const localOutputOptions = await inheritOutputOptions(outputOptions)
-      const bundle = await rollup(localInputOptions)
-      const { output } = await bundle.generate(localOutputOptions)
+      const { input } = remittee
+      remittee.inputOptions = await inheritInputOptions({ ...inputOptions, input })
+      remittee.outputOptions = await inheritOutputOptions(outputOptions)
+    }
 
-      remittee.files = []
+    for (const remittee of remitted) {
+      const { input, inputOptions, outputOptions, ref } = remittee
+      const bundle = await rollup(inputOptions)
+      const { output } = await bundle.generate(outputOptions)
 
+      const { dir = '' } = outputOptions
       for (const file of output) {
-        const fileName = join(localOutputOptions.dir || '', file.fileName)
+        file.fileName = join(dir, file.fileName)
+      }
 
-        if (file.isEntry && file.facadeModuleId == remittee.input) {
+      for (const { fileName, facadeModuleId, code } of output) {
+        if (facadeModuleId == input) {
           remittee.fileName = fileName
-          this.setAssetSource(remittee.ref, file.code)
-        } else {
-          // delete isAsset before spreading to avoid deprecation warning
-          delete file.isAsset
-          remittee.files.push({
-            ...file,
-            fileName,
-            source: file.code || file.source,
-            type: 'asset'
-          })
+          this.setAssetSource(ref, code)
         }
       }
+
+      remittee.output = output
     }
   }
 
   function generateBundle(_, bundle) {
-    for (const { files } of remitted) {
-      for (const file of files) {
-        const existing = bundle[file.fileName]
-        // if there is an existing file with different source, emit the
-        // incoming file to trigger a rollup FILE_NAME_CONFLICT warning:
-        if (!existing || existing.source != file.source) {
-          this.emitFile(file)
+    for (const { output } of remitted) {
+      for (const { fileName, name, code, source } of output) {
+        const existing = bundle[fileName]
+
+        // If file already exists but is not an asset with the same source,
+        // emit the incoming file to trigger a FILE_NAME_CONFLICT warning.
+        if (!existing || existing.source != (code||source)) {
+          this.emitFile({ fileName, name, source: code||source, type: 'asset' })
         }
       }
     }
