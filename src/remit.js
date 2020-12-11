@@ -14,11 +14,11 @@ function createRemitPlugin({
 } = {}) {
 
   const name = 'remit'
-  const remitted = []
   const filter = createFilter(include, exclude, { resolve: false })
+  const forks = []
 
   function buildStart() {
-    remitted.length = 0
+    forks.length = 0
   }
 
   function load(id) {
@@ -26,9 +26,8 @@ function createRemitPlugin({
     const input = pathname(id)
     const name = basename(input)
     const ref = this.emitFile({ name, type: 'asset' })
-    const fileUrl = `import.meta.ROLLUP_FILE_URL_${ref}`
-    remitted.push({ id, input, name, ref, fileUrl })
-    return `export default ${fileUrl}`
+    forks.push({ id, input, name, ref })
+    return `export default import.meta.ROLLUP_FILE_URL_${ref}`
   }
 
   function outputOptions(options) {
@@ -41,7 +40,7 @@ function createRemitPlugin({
     return {
       ...options,
       assetFileNames(assetInfo) {
-        for (const { name, fileName } of remitted) {
+        for (const { name, fileName } of forks) {
           if (assetInfo.name == name) {
             return fileName
           }
@@ -86,34 +85,48 @@ function createRemitPlugin({
   }
 
   async function renderStart(outputOptions, inputOptions) {
-    for (const remittee of remitted) {
-      const localInputOptions =
-        await inheritInputOptions({ ...inputOptions, input: remittee.input })
-      const localOutputOptions = await inheritOutputOptions(outputOptions)
-      const bundle = await rollup(localInputOptions)
-      const { output } = await bundle.generate(localOutputOptions)
+    for (const fork of forks) {
+      const { input } = fork
+      fork.inputOptions = await inheritInputOptions({ ...inputOptions, input })
+      fork.outputOptions = await inheritOutputOptions(outputOptions)
+    }
 
+    for (const fork of forks) {
+      const { input, inputOptions, outputOptions, ref } = fork
+      const bundle = await rollup(inputOptions)
+      const { output } = await bundle.generate(outputOptions)
+
+      const { dir = '' } = outputOptions
       for (const file of output) {
-        const fileName = join(localOutputOptions.dir || '', file.fileName)
+        file.fileName = join(dir, file.fileName)
+      }
 
-        if (file.isEntry && file.facadeModuleId == remittee.input) {
-          remittee.fileName = fileName
-          this.setAssetSource(remittee.ref, file.code)
-        } else {
-          // delete isAsset before spreading to avoid deprecation warning
-          delete file.isAsset
-          this.emitFile({
-            ...file,
-            fileName,
-            source: file.code || file.source,
-            type: 'asset'
-          })
+      for (const { fileName, facadeModuleId, code } of output) {
+        if (facadeModuleId == input) {
+          fork.fileName = fileName
+          this.setAssetSource(ref, code)
+        }
+      }
+
+      fork.output = output
+    }
+  }
+
+  function generateBundle(_, bundle) {
+    for (const { output } of forks) {
+      for (const { fileName, name, code, source } of output) {
+        const existing = bundle[fileName]
+
+        // If file already exists but is not an asset with the same source,
+        // emit the incoming file to trigger a FILE_NAME_CONFLICT warning.
+        if (!existing || existing.source != (code||source)) {
+          this.emitFile({ fileName, name, source: code||source, type: 'asset' })
         }
       }
     }
   }
 
-  return { buildStart, load, name, outputOptions, renderStart }
+  return { buildStart, load, name, outputOptions, renderStart, generateBundle }
 }
 
 export default createRemitPlugin
