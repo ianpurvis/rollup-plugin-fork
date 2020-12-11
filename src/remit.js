@@ -93,6 +93,8 @@ function createRemitPlugin({
       const bundle = await rollup(localInputOptions)
       const { output } = await bundle.generate(localOutputOptions)
 
+      remittee.files = []
+
       for (const file of output) {
         const fileName = join(localOutputOptions.dir || '', file.fileName)
 
@@ -102,7 +104,7 @@ function createRemitPlugin({
         } else {
           // delete isAsset before spreading to avoid deprecation warning
           delete file.isAsset
-          this.emitFile({
+          remittee.files.push({
             ...file,
             fileName,
             source: file.code || file.source,
@@ -113,7 +115,20 @@ function createRemitPlugin({
     }
   }
 
-  return { buildStart, load, name, outputOptions, renderStart }
+  function generateBundle(_, bundle) {
+    for (const { files } of remitted) {
+      for (const file of files) {
+        const existing = bundle[file.fileName]
+        // if there is an existing file with different source, emit the
+        // incoming file to trigger a rollup FILE_NAME_CONFLICT warning:
+        if (!existing || existing.source != file.source) {
+          this.emitFile(file)
+        }
+      }
+    }
+  }
+
+  return { buildStart, load, name, outputOptions, renderStart, generateBundle }
 }
 
 export default createRemitPlugin
