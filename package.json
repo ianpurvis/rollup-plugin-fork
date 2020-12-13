@@ -3,7 +3,7 @@
   "description": "A rollup plugin that spawns rollup, emitting the output back into the main bundle.",
   "author": "Ian Purvis <ian@purvisresearch.com>",
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/rollup-plugin-fork.cjs",
   "exports": {
