@@ -42,5 +42,13 @@
   },
   "peerDependencies": {
     "rollup": "^2.0.0"
-  }
+  },
+  "keywords": [
+    "rollup",
+    "plugin",
+    "rollup-plugin",
+    "fork",
+    "spawn",
+    "worker"
+  ]
 }
