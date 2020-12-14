@@ -1,8 +1,8 @@
 import test from 'ava'
 import { rollup } from 'rollup'
-import remit from '../src/remit.js'
+import fork from '../src/index.js'
 
-const input = new URL('./fixtures/main.js', import.meta.url).pathname
+const input = new URL('./fixtures/parent.js', import.meta.url).pathname
 
 test('should not emit duplicate files', async t => {
   let actualWarning
@@ -25,8 +25,8 @@ test('should not emit duplicate files', async t => {
           })
         }
       },
-      remit({
-        include: /remitted\.js$/
+      fork({
+        include: /child\.js$/
       })
     ]
   }
@@ -58,8 +58,8 @@ test('should warn if overwriting an existing file with different content', async
           })
         }
       },
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         inputOptions: {
           plugins: [{
             generateBundle() {

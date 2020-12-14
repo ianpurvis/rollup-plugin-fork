@@ -1,12 +1,12 @@
 import test from 'ava'
 import { rollup } from 'rollup'
-import remit from '../src/remit.js'
+import fork from '../src/index.js'
 
-const input = new URL('./fixtures/main.js', import.meta.url).pathname
+const input = new URL('./fixtures/parent.js', import.meta.url).pathname
 
 
-test('input should be the full path of the remitted file', async t => {
-  const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
+test('input should be the full path to the fork input', async t => {
+  const expectedInput = new URL('./fixtures/child.js', import.meta.url).pathname
   let actualInput
 
   const options = {
@@ -15,8 +15,8 @@ test('input should be the full path of the remitted file', async t => {
       file: 'parent.js'
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         inputOptions(options) {
           actualInput = options.input
         }
@@ -30,18 +30,19 @@ test('input should be the full path of the remitted file', async t => {
 })
 
 test('modifying input results in an error', async t => {
-  const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
+  const expectedInput = new URL('./fixtures/child.js', import.meta.url).pathname
   const expectedError = {
     code: 'PLUGIN_ERROR',
-    message: `Remit plugin options must not modify the value of "input". Expected "${expectedInput}" but was "mutated.js"`
+    message: 'Forked inputOptions may not overwrite "input" ' +
+      `(expected "${expectedInput}" but was "mutated.js")`
   }
 
   const options = {
     input,
     output: {},
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         inputOptions: {
           input: 'mutated.js'
         },
@@ -54,7 +55,7 @@ test('modifying input results in an error', async t => {
 })
 
 
-test('plugins should not inherit remit', async t => {
+test('plugins should not inherit fork', async t => {
   let actualPlugins
 
   const options = {
@@ -63,8 +64,8 @@ test('plugins should not inherit remit', async t => {
       file: 'parent.js'
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         inputOptions(options) {
           actualPlugins = options.plugins
         }

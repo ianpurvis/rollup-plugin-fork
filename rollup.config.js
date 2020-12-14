@@ -1,5 +1,5 @@
 export default {
-  input: 'src/remit.js',
+  input: 'src/index.js',
   external: [
     'path',
     'rollup',
@@ -7,10 +7,10 @@ export default {
   ],
   output: [{
     exports: 'default',
-    file: 'dist/remit.cjs',
+    file: 'dist/rollup-plugin-fork.cjs',
     format: 'cjs'
   },{
-    file: 'dist/remit.mjs',
+    file: 'dist/rollup-plugin-fork.mjs',
     format: 'esm'
   }]
 }

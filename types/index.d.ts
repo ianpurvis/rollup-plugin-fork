@@ -4,11 +4,11 @@ import { Plugin, InputOptions, OutputOptions } from 'rollup'
 // in order to avoid missing estree error:
 export type FilterPattern = ReadonlyArray<string | RegExp> | string | RegExp | null
 
-export interface RollupRemitPluginOptions {
+export interface RollupForkOptions {
   include?: FilterPattern
   exclude?: FilterPattern
   inputOptions?: InputOptions | ((options: InputOptions) => InputOptions)
   outputOptions?: OutputOptions | ((options: OutputOptions) => OutputOptions)
 }
 
-export default function createRemitPlugin(options?: RollupRemitPluginOptions): Plugin
+export default function fork(options?: RollupForkOptions): Plugin

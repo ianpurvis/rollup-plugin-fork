@@ -1,5 +1,5 @@
 import html from '@rollup/plugin-html'
-import remit from '../../src/remit.js'
+import fork from '../../src/index.js'
 
 const input = new URL('src/index.js', import.meta.url).pathname
 const outputDir = new URL('dist', import.meta.url).pathname
@@ -21,7 +21,7 @@ export default {
 </html>
 `
     }),
-    remit({
+    fork({
       include: /worker\.js$/,
       inputOptions: {
         plugins: []

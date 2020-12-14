@@ -6,14 +6,14 @@ function pathname(id) {
   return new URL(id, 'file:///').pathname
 }
 
-function createRemitPlugin({
+function fork({
   exclude,
   include,
-  inputOptions: remitInputOptions = {},
-  outputOptions: remitOutputOptions = {}
+  inputOptions: pluginInputOptions = {},
+  outputOptions: pluginOutputOptions = {}
 } = {}) {
 
-  const name = 'remit'
+  const name = 'fork'
   const filter = createFilter(include, exclude, { resolve: false })
   const forks = []
 
@@ -33,8 +33,8 @@ function createRemitPlugin({
   function outputOptions(options) {
     // Unconfigured `assetFileNames` will be undefined here because the default
     // value does not get injected until after all `outputOptions` hooks are
-    // complete.  Since the remit wrapper function must not return undefined,
-    // re-create the documented default value:
+    // complete.  Since this assetFileNames wrapper function must not return
+    // undefined, re-create the documented default value:
     const { assetFileNames = 'assets/[name]-[hash][extname]' } = options
 
     return {
@@ -51,21 +51,21 @@ function createRemitPlugin({
   }
 
   async function inheritInputOptions({ ...options }) {
-    // Prevent runaway remits:
+    // Prevent circular forks. Sporks?
     const { plugins = [] } = options
     options.plugins = plugins.filter(p => p.name != name)
 
     const { input: expectedInput } = options
 
-    if (typeof remitInputOptions === 'function') {
-      options = await remitInputOptions(options) || options
+    if (typeof pluginInputOptions === 'function') {
+      options = await pluginInputOptions(options) || options
     } else {
-      options = { ...options, ...remitInputOptions }
+      options = { ...options, ...pluginInputOptions }
     }
 
     if (options.input !== expectedInput) {
-      throw new Error('Remit plugin options must not modify the value of "input".' +
-        ` Expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(options.input)}`)
+      throw new Error('Forked inputOptions may not overwrite "input" ' +
+        `(expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(options.input)})`)
     }
 
     return options
@@ -75,10 +75,10 @@ function createRemitPlugin({
     delete options.dir
     delete options.file
 
-    if (typeof remitOutputOptions === 'function') {
-      options = await remitOutputOptions(options) || options
+    if (typeof pluginOutputOptions === 'function') {
+      options = await pluginOutputOptions(options) || options
     } else {
-      options = { ...options, ...remitOutputOptions }
+      options = { ...options, ...pluginOutputOptions }
     }
 
     return options
@@ -129,4 +129,4 @@ function createRemitPlugin({
   return { buildStart, load, name, outputOptions, renderStart, generateBundle }
 }
 
-export default createRemitPlugin
+export default fork
