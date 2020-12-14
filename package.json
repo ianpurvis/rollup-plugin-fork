@@ -3,17 +3,20 @@
   "description": "A rollup plugin that spawns rollup, emitting the output back into the main bundle.",
   "author": "Ian Purvis <ian@purvisresearch.com>",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ianpurvis/rollup-plugin-fork.git"
+  },
   "type": "module",
   "main": "./dist/rollup-plugin-fork.cjs",
   "exports": {
     "require": "./dist/rollup-plugin-fork.cjs",
     "import": "./dist/rollup-plugin-fork.mjs"
   },
-  "types": "dist/rollup-plugin-fork.d.ts",
+  "types": "./dist/rollup-plugin-fork.d.ts",
   "files": [
     "dist",
-    "types",
     "README.md",
     "LICENSE"
   ],
