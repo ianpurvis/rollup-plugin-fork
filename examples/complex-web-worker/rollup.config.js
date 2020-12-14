@@ -1,5 +1,5 @@
 import html from '@rollup/plugin-html'
-import remit from '../../src/remit.js'
+import fork from '../../src/index.js'
 import asset from './plugins/asset.js'
 import worker from './plugins/worker.js'
 
@@ -26,7 +26,7 @@ export default {
     asset({
       include: /\.txt$/
     }),
-    remit({
+    fork({
       include: /worker\.js$/,
       inputOptions({ plugins = [], ...options }) {
         return {
