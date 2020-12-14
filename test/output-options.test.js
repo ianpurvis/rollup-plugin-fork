@@ -1,8 +1,8 @@
 import test from 'ava'
 import { rollup } from 'rollup'
-import remit from '../src/remit.js'
+import fork from '../src/index.js'
 
-const input = new URL('./fixtures/main.js', import.meta.url).pathname
+const input = new URL('./fixtures/parent.js', import.meta.url).pathname
 
 
 test('dir should not be inherited', async t => {
@@ -14,8 +14,8 @@ test('dir should not be inherited', async t => {
       dir: 'parent'
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         outputOptions(options) {
           actualDir = options.dir
         }
@@ -24,11 +24,11 @@ test('dir should not be inherited', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted ] = output
+  const [ parent, child ] = output
 
   t.is(actualDir, undefined)
-  t.is(main.fileName, 'main.js')
-  t.is(remitted.fileName, 'remitted.js')
+  t.is(parent.fileName, 'parent.js')
+  t.is(child.fileName, 'child.js')
 })
 
 
@@ -38,8 +38,8 @@ test('dir should be prepended to all filenames', async t => {
     output: {
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         outputOptions: {
           dir: 'child'
         }
@@ -48,10 +48,10 @@ test('dir should be prepended to all filenames', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted ] = output
+  const [ parent, child ] = output
 
-  t.is(main.fileName, 'main.js')
-  t.is(remitted.fileName, 'child/remitted.js')
+  t.is(parent.fileName, 'parent.js')
+  t.is(child.fileName, 'child/child.js')
 })
 
 
@@ -64,8 +64,8 @@ test('file should not be inherited', async t => {
       file: 'parent.js'
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         outputOptions(options) {
           actualFile = options.file
         }
@@ -74,11 +74,11 @@ test('file should not be inherited', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted ] = output
+  const [ parent, child ] = output
 
   t.is(actualFile, undefined)
-  t.is(main.fileName, 'parent.js')
-  t.is(remitted.fileName, 'remitted.js')
+  t.is(parent.fileName, 'parent.js')
+  t.is(child.fileName, 'child.js')
 })
 
 
@@ -87,8 +87,8 @@ test('file should be used for the entry filename', async t => {
     input,
     output: {},
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         outputOptions: {
           file: 'child.js'
         }
@@ -97,10 +97,10 @@ test('file should be used for the entry filename', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted ] = output
+  const [ parent, child ] = output
 
-  t.is(main.fileName, 'main.js')
-  t.is(remitted.fileName, 'child.js')
+  t.is(parent.fileName, 'parent.js')
+  t.is(child.fileName, 'child.js')
 })
 
 
@@ -113,8 +113,8 @@ test('entryFileNames should be inherited', async t => {
       entryFileNames: 'inherited-[name].js'
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         outputOptions(options) {
           actualEntryFileNames = options.entryFileNames
         }
@@ -123,11 +123,11 @@ test('entryFileNames should be inherited', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted ] = output
+  const [ parent, child ] = output
 
   t.is(actualEntryFileNames, 'inherited-[name].js')
-  t.is(main.fileName, 'inherited-main.js')
-  t.is(remitted.fileName, 'inherited-remitted.js')
+  t.is(parent.fileName, 'inherited-parent.js')
+  t.is(child.fileName, 'inherited-child.js')
 })
 
 
@@ -140,8 +140,8 @@ test('assetFileNames should be inherited', async t => {
       assetFileNames: 'inherited-[name].[ext]'
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         inputOptions: {
           plugins: [{
             generateBundle() {
@@ -157,17 +157,17 @@ test('assetFileNames should be inherited', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted, asset ] = output
+  const [ parent, child, asset ] = output
 
-  t.is(main.fileName, 'main.js')
-  t.is(remitted.fileName, 'remitted.js')
+  t.is(parent.fileName, 'parent.js')
+  t.is(child.fileName, 'child.js')
   t.is(asset.fileName, 'inherited-asset.txt')
 
   // Test wrapper function
   t.is(typeof actualAssetFileNames, 'function')
 
-  const actualRemittedName = actualAssetFileNames({ name: 'remitted.js' })
-  t.is(actualRemittedName, 'remitted.js')
+  const actualChildName = actualAssetFileNames({ name: 'child.js' })
+  t.is(actualChildName, 'child.js')
 
   const actualAssetName = actualAssetFileNames({ name: 'asset.txt' })
   t.is(actualAssetName, 'inherited-[name].[ext]')
@@ -183,13 +183,13 @@ test('chunkFileNames should be inherited', async t => {
       chunkFileNames: 'inherited-[name].js',
     },
     plugins: [
-      remit({
-        include: /remitted\.js$/,
+      fork({
+        include: /child\.js$/,
         inputOptions: {
           plugins: [{
             buildStart() {
               this.emitFile({
-                id: new URL('./fixtures/remitted-static-import.js', import.meta.url).pathname,
+                id: new URL('./fixtures/static-import.js', import.meta.url).pathname,
                 name: 'chunk',
                 code: 'export default "NOT_EMPTY"',
                 type: 'chunk'
@@ -205,10 +205,10 @@ test('chunkFileNames should be inherited', async t => {
   }
   const bundle = await rollup(options)
   const { output } = await bundle.generate(options.output)
-  const [ main, remitted, chunk ] = output
+  const [ parent, child, chunk ] = output
 
   t.is(actualChunkFileNames, 'inherited-[name].js')
-  t.is(main.fileName, 'main.js')
-  t.is(remitted.fileName, 'remitted.js')
+  t.is(parent.fileName, 'parent.js')
+  t.is(child.fileName, 'child.js')
   t.is(chunk.fileName, 'inherited-chunk.js')
 })
