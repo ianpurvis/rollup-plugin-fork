@@ -33,7 +33,8 @@ test('modifying input results in an error', async t => {
   const expectedInput = new URL('./fixtures/remitted.js', import.meta.url).pathname
   const expectedError = {
     code: 'PLUGIN_ERROR',
-    message: `Remit plugin options must not modify the value of "input". Expected "${expectedInput}" but was "mutated.js"`
+    message: 'Forked inputOptions may not overwrite "input" ' +
+      `(expected "${expectedInput}" but was "mutated.js")`
   }
 
   const options = {
