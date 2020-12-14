@@ -1,31 +1,34 @@
-![continuous](https://github.com/ianpurvis/rollup-plugin-remit/workflows/continuous/badge.svg)
+![continuous](https://github.com/ianpurvis/rollup-plugin-fork/workflows/continuous/badge.svg)
 
-# rollup-plugin-remit
+# rollup-plugin-fork
 
-  A rollup plugin that spawns rollup, emitting the output back into the main build.
+  A rollup plugin that spawns rollup, emitting the output back into the main bundle.
 
 
 ## Install
 
-    $ npm i -D rollup-plugin-remit
+    $ npm i -D rollup-plugin-fork
 
 
 ## Options
 
 ### `include` [string] | [RegExp] | [string]\[\] | [RegExp]\[\]
 
-  Regular expression or [picomatch] pattern that includes files. Nothing is included by default.
+  Regular expression or [picomatch] pattern that includes files.
+  Nothing is included by default.
 
 ### `exclude` [string] | [RegExp] | [string]\[\] | [RegExp]\[\]
 
-  Regular expression or [picomatch] pattern that excludes files. Nothing is excluded by default.
+  Regular expression or [picomatch] pattern that excludes files.
+  Nothing is excluded by default.
 
 ### `inputOptions` [InputOptions] | (options: [InputOptions]) => [InputOptions]
 
   Input options to be used when spawning rollup. By default, the plugin will
-  inherit all options from the main build except for `input`.  You can specify
-  an options object to be spread into the inherited options, or a transform
-  function receiving the inherited options and returning their replacement.
+  inherit all options from the main bundle except for `input`.  You can
+  specify an options object to be spread into the inherited options, or a
+  transform function receiving the inherited options and returning their
+  replacement.
 
   If a transform function is specified, it will be invoked for each module
   included by the plugin and will receive options where `input` is the absolute
@@ -35,12 +38,12 @@
 ### `outputOptions` [OutputOptions] | (options: [OutputOptions]) => [OutputOptions]
 
   Output options to be used when spawning rollup. By default, the plugin will
-  inherit all options from the main build except for `dir` and `file`.  You can
-  specify an options object to be spread into the inherited options, or a
+  inherit all options from the main bundle except for `dir` and `file`.  You
+  can specify an options object to be spread into the inherited options, or a
   transform function receiving the inherited options and returning their
   replacement.
 
-  If you specify `dir`, it will be relative to the `dir` of the main build output.
+  If you specify `dir`, it will be relative to the `dir` of the main output.
 
 [RegExp]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 [String]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
@@ -51,8 +54,8 @@
 
 ## Web Worker Example
 
-  The following example re-emits an IIFE web worker bundle.  `format` is
-  overridden while `output.entryFileNames` is inherited to give the worker a
+  The following example outputs an ES bundle with an IIFE web worker asset.
+  `format` is overridden while `entryFileNames` is inherited to give the worker a
   hashed file name.
 
   **main.js**
@@ -76,7 +79,7 @@
  
   **rollup.config.js**
 
-    import remit from 'rollup-plugin-remit'
+    import fork from 'rollup-plugin-fork'
 
     export default {
       input: 'main.js',
@@ -85,7 +88,7 @@
         format: 'es'
       },
       plugins: [
-        remit({
+        fork({
           include: /worker\.js$/,
           outputOptions: {
             format: 'iife'
