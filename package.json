@@ -10,7 +10,7 @@
     "require": "./dist/remit.cjs",
     "import": "./dist/remit.mjs"
   },
-  "types": "types/remit.d.ts",
+  "types": "dist/rollup-plugin-fork.d.ts",
   "files": [
     "dist",
     "types",
@@ -18,7 +18,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && npm run build-types",
+    "build-types": "node -r fs -e \"fs.copyFileSync('types/index.d.ts', 'dist/rollup-plugin-fork.d.ts')\"",
     "clean": "node -r fs -e \"fs.rmdirSync('dist', { recursive: true })\"",
     "lint": "eslint .",
     "test": "ava",
