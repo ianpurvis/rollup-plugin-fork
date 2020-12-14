@@ -14,10 +14,9 @@
     "require": "./dist/rollup-plugin-fork.cjs",
     "import": "./dist/rollup-plugin-fork.mjs"
   },
-  "types": "dist/rollup-plugin-fork.d.ts",
+  "types": "./dist/rollup-plugin-fork.d.ts",
   "files": [
     "dist",
-    "types",
     "README.md",
     "LICENSE"
   ],
