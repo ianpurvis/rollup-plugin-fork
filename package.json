@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-html": "^0.2.0",
-    "ava": "^3.14.0",
+    "ava": "^4.0.0",
     "eslint": "^8.0.1",
     "koa": "^2.13.0",
     "mime-types": "^2.1.27",
