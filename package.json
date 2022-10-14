@@ -30,7 +30,7 @@
     "complex-web-worker-example": "rollup -c -p \"serve={contentBase:'examples/complex-web-worker/dist'}\""
   },
   "dependencies": {
-    "@rollup/pluginutils": "^4.1.0"
+    "@rollup/pluginutils": "^5.0.1"
   },
   "devDependencies": {
     "@rollup/plugin-html": "^1.0.0",
