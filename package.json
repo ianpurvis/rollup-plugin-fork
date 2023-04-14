@@ -25,7 +25,7 @@
     "build-types": "node -r fs -e \"fs.copyFileSync('types/index.d.ts', 'dist/rollup-plugin-fork.d.ts')\"",
     "clean": "node -r fs -e \"fs.rmdirSync('dist', { recursive: true })\"",
     "lint": "eslint .",
-    "test": "ava",
+    "test": "c8 ava",
     "simple-web-worker-example": "rollup -c -p \"serve={contentBase:'examples/simple-web-worker/dist'}\"",
     "complex-web-worker-example": "rollup -c -p \"serve={contentBase:'examples/complex-web-worker/dist'}\""
   },
