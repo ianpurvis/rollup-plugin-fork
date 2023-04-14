@@ -1,22 +1,27 @@
 ---
 name: continuous
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - trunk
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 14
-      - id: fetch-node-modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node-modules/${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules/
-      - if: steps.fetch-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
       - run: npm run lint
       - run: npm run build
       - run: npm run test -- --verbose
+    strategy:
+      matrix:
+        node-version:
+          - 14.x
+          - 16.x
+          # - 18.x
