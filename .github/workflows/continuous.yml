@@ -11,14 +11,7 @@ jobs:
           node-version-file: '.node-version'
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - id: fetch-node-modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node-modules/${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules/
-      - if: steps.fetch-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
+      - run: npm ci
       - run: npm run lint
       - run: npm run build
       - run: npm run test -- --verbose
