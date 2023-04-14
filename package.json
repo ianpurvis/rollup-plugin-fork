@@ -45,7 +45,7 @@
     "rollup-plugin-serve": "^2.0.0"
   },
   "peerDependencies": {
-    "rollup": "^2.0.0"
+    "rollup": ">=2.0.0"
   },
   "keywords": [
     "rollup",
