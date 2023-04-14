@@ -5,4 +5,5 @@
 .DS_Store
 .npm
 node_modules/
+coverage/
 dist/
