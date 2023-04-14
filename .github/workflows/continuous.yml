@@ -20,6 +20,11 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm run test -- --verbose
+      - uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
     strategy:
       matrix:
         node-version:

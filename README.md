@@ -1,4 +1,5 @@
-![continuous](https://github.com/ianpurvis/rollup-plugin-fork/workflows/continuous/badge.svg)
+[![build](https://github.com/ianpurvis/rollup-plugin-fork/actions/workflows/continuous.yml/badge.svg)](https://github.com/ianpurvis/rollup-plugin-fork/actions/workflows/continuous.yml)
+[![codecov](https://codecov.io/gh/ianpurvis/rollup-plugin-fork/branch/trunk/graph/badge.svg?token=F5GZFK1VUN)](https://codecov.io/gh/ianpurvis/rollup-plugin-fork)
 
 # rollup-plugin-fork
 
