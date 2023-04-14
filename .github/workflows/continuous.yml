@@ -15,6 +15,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
           node-version: ${{ matrix.node-version }}
+      - run: npm install -g npm@latest
       - run: npm ci
       - run: npm run lint
       - run: npm run build
@@ -24,4 +25,4 @@ jobs:
         node-version:
           - 14.x
           - 16.x
-          # - 18.x
+          - 18.x

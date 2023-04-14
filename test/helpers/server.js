@@ -4,7 +4,7 @@ import Koa from 'koa'
 export async function setup({ context, log }) {
   log('Setting up server')
   const app = new Koa()
-  const server = app.listen({ port: 0, host: 'localhost' })
+  const server = app.listen({ port: 0, host: '127.0.0.1' })
   await once(server, 'listening')
   Object.assign(context, { app, server })
 }
