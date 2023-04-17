@@ -1,5 +1,5 @@
 import { basename, join } from 'path'
-import { rollup } from 'rollup'
+import { rollup, VERSION } from 'rollup'
 import { createFilter } from '@rollup/pluginutils'
 
 function pathname(id) {
@@ -13,6 +13,7 @@ function fork({
   outputOptions: pluginOutputOptions = {}
 } = {}) {
 
+  const rollupVersion = Number.parseFloat(VERSION) // major.minor
   const name = 'fork'
   const filter = createFilter(include, exclude, { resolve: false })
   const forks = []
@@ -68,6 +69,10 @@ function fork({
         `(expected ${JSON.stringify(expectedInput)} but was ${JSON.stringify(options.input)})`)
     }
 
+    if (rollupVersion >= 3.0) {
+      delete options.maxParallelFileReads
+    }
+
     return options
   }
 
@@ -79,6 +84,12 @@ function fork({
       options = await pluginOutputOptions(options) || options
     } else {
       options = { ...options, ...pluginOutputOptions }
+    }
+
+    if (rollupVersion >= 3.0) {
+      delete options.preferConst
+      delete options.namespaceToStringTag
+      delete options.experimentalDeepDynamicChunkOptimization
     }
 
     return options
