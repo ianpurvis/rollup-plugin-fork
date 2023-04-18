@@ -10,11 +10,13 @@
   },
   "type": "module",
   "main": "./dist/rollup-plugin-fork.cjs",
-  "exports": {
-    "require": "./dist/rollup-plugin-fork.cjs",
-    "import": "./dist/rollup-plugin-fork.mjs"
-  },
+  "module": "./dist/rollup-plugin-fork.mjs",
   "types": "./dist/rollup-plugin-fork.d.ts",
+  "exports": {
+    "import": "./dist/rollup-plugin-fork.mjs",
+    "require": "./dist/rollup-plugin-fork.cjs",
+    "types": "./dist/rollup-plugin-fork.d.ts"
+  },
   "files": [
     "dist",
     "README.md",
