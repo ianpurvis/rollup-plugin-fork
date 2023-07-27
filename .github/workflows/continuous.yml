@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - trunk
+permissions:
+  contents: write
+  pull-requests: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,3 +34,20 @@ jobs:
           - 16.x
           - 18.x
           - 20.x
+  merge:
+    needs: build
+    if: ${{github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'}}
+    runs-on: ubuntu-latest
+    steps:
+      - id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: "${{secrets.GITHUB_TOKEN}}"
+      - if: ${{steps.metadata.outputs.update-type == 'version-update:semver-major'}}
+        run: gh run cancel ${{github.run_id}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
+        run: gh pr merge --auto --squash ${{github.event.pull_request.html_url}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
