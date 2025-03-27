@@ -40,7 +40,7 @@
     "c8": "^10.1.2",
     "eslint": "^8.0.1",
     "koa": "^2.13.0",
-    "mime-types": "^2.1.27",
+    "mime-types": "^3.0.1",
     "node-inspect": "^2.0.0",
     "puppeteer": "^23.0.2",
     "rollup": "^3.20.2",
